@@ -39,7 +39,11 @@ To use this extension on your local Chrome browser, follow these steps:
    Once loaded, the extension should appear in your Browser toolbar. You can now click on the extension icon and start adding notes!
 
 
-## How to Use
+## Demo 
+
+
+https://github.com/user-attachments/assets/e8e8e335-0c1b-40f9-9df8-250e92a72551
+
 
 
 ## Contributing
