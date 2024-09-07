@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Keeper</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <h2>Note Keeper</h2>
+    
+    <div>
+        <h4>Available Tags:</h4>
+        <div id="availableTags"></div>
+    </div>
+
+    <button id="addNoteButton">+ Add Note</button>
+
+    <!-- Form for adding/editing notes -->
+    <div id="noteForm" style="display: none;">
+        <input type="text" id="urlInput" placeholder="Enter URL (optional)">
+        <input type="text" id="titleInput" placeholder="Enter Title">
+        <textarea id="noteInput" placeholder="Enter your note" maxlength="1000"></textarea>
+        <input type="text" id="tagInput" placeholder="Enter tags (comma-separated)">
+        <button id="saveNoteButton">Save Note</button>
+    </div>
+
+    <!-- Container for displaying notes -->
+    <div id="notesContainer"></div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
