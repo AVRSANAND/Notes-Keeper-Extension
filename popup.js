@@ -1,6 +1,11 @@
 // Global variables
 let notes = [];
-let currentEditIndex = null;
+let currentEditId = null;
+
+// Helper function to generate unique IDs for notes
+function generateId() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+}
 
 // Load notes when the extension is opened
 document.addEventListener('DOMContentLoaded', function () {
@@ -15,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add new note button click handler
     document.getElementById('addNoteButton').addEventListener('click', function () {
         clearForm();
-        currentEditIndex = null;
+        currentEditId = null;
         document.getElementById('noteForm').style.display = 'block';
     });
 
@@ -32,15 +37,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const newNote = {
+            id: currentEditId ? currentEditId : generateId(), // Assign a unique ID or keep the existing one
             url: url || null,
             title,
             content,
             tags: tags.length > 0 ? tags : ['general']
         };
 
-        if (currentEditIndex !== null) {
+        if (currentEditId) {
             // Edit existing note
-            notes[currentEditIndex] = newNote;
+            const noteIndex = notes.findIndex(note => note.id === currentEditId);
+            if (noteIndex > -1) {
+                notes[noteIndex] = newNote;
+            }
         } else {
             // Add new note
             notes.push(newNote);
@@ -57,20 +66,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Event delegation for edit and delete buttons
     document.getElementById('notesContainer').addEventListener('click', function (event) {
-        const index = parseInt(event.target.dataset.index);
+        const target = event.target;
 
-        if (event.target.classList.contains('edit-note-btn')) {
-            const note = notes[index];
-            document.getElementById('urlInput').value = note.url || '';
-            document.getElementById('titleInput').value = note.title;
-            document.getElementById('noteInput').value = note.content;
-            document.getElementById('tagInput').value = note.tags.join(', ');
-            currentEditIndex = index;
-            document.getElementById('noteForm').style.display = 'block';
+        if (target.classList.contains('edit-note-btn')) {
+            const noteId = target.dataset.id;
+            const note = notes.find(note => note.id === noteId);
+            if (note) {
+                document.getElementById('urlInput').value = note.url || '';
+                document.getElementById('titleInput').value = note.title;
+                document.getElementById('noteInput').value = note.content;
+                document.getElementById('tagInput').value = note.tags.join(', ');
+                currentEditId = note.id;
+                document.getElementById('noteForm').style.display = 'block';
+            }
         }
 
-        if (event.target.classList.contains('delete-note-btn')) {
-            notes.splice(index, 1);
+        if (target.classList.contains('delete-note-btn')) {
+            const noteId = target.dataset.id;
+            notes = notes.filter(note => note.id !== noteId);  // Delete the note by its ID
             chrome.storage.local.set({ notes }, function () {
                 renderNotes(notes);
                 renderTags(notes);
@@ -79,47 +92,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
 // Render notes in the notes container
 function renderNotes(notes, filtered = false) {
     const notesContainer = document.getElementById('notesContainer');
     notesContainer.innerHTML = '';
 
-    if (filtered) {
-        notes.forEach((note, index) => {
-            const noteDiv = document.createElement('div');
-            noteDiv.className = 'note';
+    notes.forEach(note => {
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'note';
 
-            noteDiv.innerHTML = `
-                <h4>${note.title}</h4>
-                <p>${note.content}</p>
-                ${note.url ? `<a href="${note.url}" target="_blank">${note.url}</a>` : ''}
-                <p>Tags: ${note.tags.join(', ')}</p>
-                <button class="edit-note-btn" data-index="${index}">Edit</button>
-                <button class="delete-note-btn" data-index="${index}">Delete</button>
-            `;
+        noteDiv.innerHTML = `
+            <h4>${note.title}</h4>
+            <p>${note.content}</p>
+            ${note.url ? `<a href="${note.url}" target="_blank">${note.url}</a>` : ''}
+            <p>Tags: ${note.tags.join(', ')}</p>
+            <button class="edit-note-btn" data-id="${note.id}">Edit</button>
+            <button class="delete-note-btn" data-id="${note.id}">Delete</button>
+        `;
 
-            notesContainer.appendChild(noteDiv);
-        });
-    } else {
-        // Display only the latest note
-        if (notes.length > 0) {
-            const latestNote = notes[notes.length - 1];
-            const latestNoteDiv = document.createElement('div');
-            latestNoteDiv.className = 'note';
-
-            latestNoteDiv.innerHTML = `
-                <h4>${latestNote.title}</h4>
-                <p>${latestNote.content}</p>
-                ${latestNote.url ? `<a href="${latestNote.url}" target="_blank">${latestNote.url}</a>` : ''}
-                <p>Tags: ${latestNote.tags.join(', ')}</p>
-                <button class="edit-note-btn" data-index="${notes.length - 1}">Edit</button>
-                <button class="delete-note-btn" data-index="${notes.length - 1}">Delete</button>
-            `;
-
-            notesContainer.appendChild(latestNoteDiv);
-        }
-    }
+        notesContainer.appendChild(noteDiv);
+    });
 }
 
 // Render tags in the available tags container
